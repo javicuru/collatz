@@ -6,23 +6,38 @@ class Node:
 
         self.right_child = None
 
+        self.parent = None
+
     def is_leaf(self):
         return self.left_child is None and self.right_child is None
 
+    def set_left_child(self, left_child):
+        self.left_child = left_child
+
+    def set_right_child(self, right_child):
+        self.right_child = right_child
+
+    def set_parent(self, parent):
+        self.parent = parent
+
     def __str__(self):
-        if self.left_child:
+        try:
             left_child_value = self.left_child.value
 
-        else:
-            left_child_value = None
+        except AttributeError:
+            left_child_value = ""
 
-        if self.right_child:
+        try:
             right_child_value = self.right_child.value
 
-        else:
-            right_child_value = None
+        except AttributeError:
+            right_child_value = ""
 
-        return str({"value": self.value, "left_child": left_child_value, "right_child": right_child_value})
+        return f'Node(' \
+               f'\n\tvalue: {self.value},' \
+               f'\n\tleft_child_value: {left_child_value},' \
+               f'\n\tright_child_value: {right_child_value}' \
+               f'\n)'
 
 
 class Tree:
@@ -36,21 +51,24 @@ class Tree:
             left_value, right_value = self.grow_func(node.value)
 
             if left_value is None:
-                node.left_child = None
+                node.set_left_child(None)
 
             elif left_value > 1:
-                node.left_child = Node(left_value)
+                node.set_left_child(Node(left_value))
+
+                node.left_child.set_parent(node)
 
                 self.nodes.append(node.left_child)
 
             if right_value is None:
-                node.right_child = None
+                node.set_right_child(None)
 
             elif right_value > 1:
-                node.right_child = Node(right_value)
+                node.set_right_child(Node(right_value))
+
+                node.right_child.set_parent(node)
 
                 self.nodes.append(node.right_child)
-
 
     def grow_n(self, n):
         for i in range(n):
@@ -74,29 +92,35 @@ class Tree:
     def get_size(self):
         return len(self.nodes)
 
-    def get_lineages(self, current_node=None, lineages=None):
-        if current_node is None:
-            assert lineages is None, "if current_node None, lineages must be None too."
+    def get_lineages(self):
+        lineages = []
 
-            current_node = self.get_first_node()
+        for leaf in self.get_leaves():
+            current_lineage = []
 
-            lineages = [[self.get_first_node()]]
+            member = leaf
 
-        if current_node.left_child is not None and current_node.right_child is None:
-            lineages[-1].append(self.get_lineages(current_node.left_child, lineages))
+            while member:
+                current_lineage.append(member)
 
-        elif current_node.left_child is None and current_node.right_child is not None:
-            lineages[-1].append(self.get_lineages(current_node.right_child, lineages))
+                member = member.parent
 
-        elif current_node.left_child is not None and current_node.right_child is not None:
-            lineages.append(lineages[-1])
+            lineages.append(current_lineage)
 
-            lineages[-2].append(self.get_lineages(current_node.left_child, lineages))
+        return lineages
 
-            lineages[-1].append(self.get_lineages(current_node.right_child, lineages))
+    def print_lineages(self):
+        k = 0
 
-        else:  # is leaf
-            return lineages
+        for lineage in self.get_lineages():
+            print("Lineage " + str(k))
+
+            for node in lineage[::-1]:
+                print("\n".join(['\t' + x for x in str(node).split("\n")]))
+
+            k += 1
+
+            print("")
 
 
 if __name__ == "__main__":
@@ -104,11 +128,13 @@ if __name__ == "__main__":
 
     collatz_tree = Tree(Node(1), grow_func=collatz.reverse_step)
 
-    collatz_tree.grow_n(2)
+    collatz_tree.grow_n(5)
 
     # for node in collatz_tree.nodes:
     #     print(node)
 
-    print(collatz_tree.get_size())
+    # print(collatz_tree.get_size())
+
+    collatz_tree.print_lineages()
 
     lineages = collatz_tree.get_lineages()

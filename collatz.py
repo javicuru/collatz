@@ -14,17 +14,6 @@ def reverse_step(x):
     else:
         return previous_even, None
 
-    # if not x % 2:
-    #     if previous_odd.is_integer():
-    #         return previous_even, previous_odd
-    #
-    #     else:
-    #         return previous_even, None
-    #
-    # else:
-    #     return previous_even, None
-
-
 def generate_collatz(start, steps=-1):
     a = start
 
