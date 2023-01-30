@@ -15,7 +15,8 @@ def is_prime(n: int) -> bool:
 
 
 def goldbach(n):
-    assert not n%2 and n > 2, "n must be even greater than 2"
+    if n % 2 or n <= 2:
+        raise ValueError("n must be even greater than 2")
 
     m = n//2
 
@@ -26,25 +27,54 @@ def goldbach(n):
     return None
 
 
+def nested_radii(n, max_depth=0):
+    primes = goldbach(n)
+
+    radii = [primes[1] - primes[0]]
+
+    for i in range(max_depth):
+        try:
+            primes = goldbach(radii[-1])
+
+        except ValueError:
+            return radii
+
+        radii.append(primes[1] - primes[0])
+
+    return radii
+
 ###################
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
-    some_ints = range(2, 100)
+    some_evens = range(2000, 2050, 2)
 
-    goldbach_radii = []
+    # obs, sí p1 + p2 = 2n --> p2 - p1 = 2n - 2p1 = 2(n - p1) (i.e. p2 - p1 es par)
 
-    for n in some_ints:
-        p1, p2 = goldbach(2*n)
+    # goldbach_radii = []
+    #
+    # for n in some_evens:
+    #     p1, p2 = goldbach(n)
+    #
+    #     goldbach_radii.append((n, p2 - p1))
 
-        goldbach_radii.append((n, n - p1))
+    # plt.plot(some_evens, [g[1] for g in goldbach_radii], '.-')
+    # plt.ylabel("p2 - p1")
+    # plt.xlabel("2n")
 
-    plt.plot(some_ints, [g[1] for g in goldbach_radii])
+########################
 
-    plt.ylabel("Goldbach radii")
-    plt.xlabel("n")
+    radii = [nested_radii(n, max_depth=3) for n in some_evens]
 
+    max_depth = max([len(x) for x in radii])
 
+    for i in range(len(radii)):
+        radii[i].extend([None]*(max_depth - len(radii[i])))  # completar missing depth con None
 
+    for depth in range(max_depth):
+        plt.plot(some_evens, [x[depth] for x in radii], '.-', label = "Depth = " + str(depth))
 
+    plt.legend()
+    plt.ylabel("Radius")
+    plt.xlabel("2n")
